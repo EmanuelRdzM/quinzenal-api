@@ -1,0 +1,29 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend del proyecto **Quinzenal (CashFlow)**.\r API REST para el manejo de ingresos, egresos, deudas, créditos y balances personales.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmanuelRdzM/quinzenal-api.git"
+  },
+  "keywords": [],
+  "author": "Emanuel-Rdz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EmanuelRdzM/quinzenal-api/issues"
+  },
+  "homepage": "https://github.com/EmanuelRdzM/quinzenal-api#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
