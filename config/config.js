@@ -43,7 +43,7 @@ export default {
     development: {
         username: env('DB_USER') || 'root',
         password: env('DB_PASS') || null,
-        database: env('DB_NAME') || 'quinzenal_cash_flow_test',
+        database: env('DB_NAME') || 'quinzenal_cash_flow',
         host: env('DB_HOST') || '127.0.0.1',
         dialect: 'mysql',
         port: env('DB_PORT'),
