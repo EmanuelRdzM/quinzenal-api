@@ -2,19 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { Sequelize } from 'sequelize';
 import { env } from '../shared/env.js';
+import config  from '../../config/config.js';
 
-const config = require('../../config/config.js')[env('NODE_ENV') || 'development'];
+const envMode = env('NODE_ENV') || 'development';
+const dbConfig = config[envMode];
+//const config = require('../../config/config.js')[env('NODE_ENV') || 'development'];
 
 const sequelize = new Sequelize(
-    config.database, 
-    config.username, 
-    config.password, 
-    config
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
+  dbConfig
 );
 
-const db = {
-  sequelize,
-  Sequelize
-};
-
-export default db;
+export default sequelize;
