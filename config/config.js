@@ -21,13 +21,10 @@ const dialectOptions = {
     mysql: {
         timezone: "local",
         dateStrings: false,
-        /* Antes estabas usando: typeCast: false
-           Lo reemplazamos por la función que fuerza strings sólo para tipos text/blob */
         typeCast: safeTypeCast
     },
     mariadb: {
         timezone: "local",
-        // mariadb (mysql2 compatible) también acepta typeCast; aplicamos la misma función por seguridad
         typeCast: safeTypeCast
     },
     postgres: {
