@@ -51,7 +51,7 @@ export async function update(req, res) {
 export async function summary(req, res) {
   const { id } = req.params;
   try {
-    const summary = await (await import('../services/period-movement.service.js')).getPeriodSummary(Number(id));
+    const summary = await (await import('../services/periodMovement.service.js')).getPeriodSummary(Number(id));
     return res.json(summary);
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -1,5 +1,5 @@
 // src/controllers/movement.controller.js
-import * as movementService from '../services/period-movement.service.js';
+import * as movementService from '../services/periodMovement.service.js';
 
 export async function createMovement(req, res) {
   try {

@@ -1,7 +1,7 @@
 // src/routes/period.routes.js
 import { Router } from 'express';
-import * as periodCtrl from '../controllers/period.contoller.js';
-import * as movementCtrl from '../controllers/period-movememt.cotroller.js';
+import * as periodCtrl from '../controllers/period.controller.js';
+import * as movementCtrl from '../controllers/periodMovememt.controller.js';
 
 const router = Router();
 
