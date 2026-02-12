@@ -18,6 +18,11 @@ function validateMaxDuration(startDate, endDate, maxDays = 31) {
   }
 }
 
+/**
+ * validatePeriodOverlap:
+ *  - startDate/endDate deben ser strings 'YYYY-MM-DD' o Date convertibles
+ *  - excludeId: id a excluir (usado en update)
+ */
 async function validatePeriodOverlap(startDate, endDate, excludeId = null) {
 
   const where = {
@@ -79,7 +84,9 @@ export async function createManualPeriod({ startDate, endDate, notes }, options 
   return created;
 }
 
-// Crea un periodo "quincenal" basado en date (primera quincena 1-15, segunda 16-fin)
+/**
+ * Crea un periodo quincenal desde una fecha (wrapper)
+ */
 export async function createBiweeklyPeriodFromDate(dateInput, options = {}) {
 
   const date = new Date(dateInput);
@@ -109,7 +116,6 @@ export async function createBiweeklyPeriodFromDate(dateInput, options = {}) {
   return created;
 }
 
-// Busca un periodo que contenga `dateInput`. Si no existe y autoCreate true => lo crea.
 export async function findOrCreatePeriodByDate(dateInput, { autoCreate = true, transaction = null } = {}) {
   const dateStr = dateInput;
 
@@ -150,29 +156,6 @@ export async function getPeriodById(id) {
   });
 }
 
-// Actualizar periodo (solo startDate, endDate, notes)
-/* export async function updatePeriod(id, payload) {
-  const period = await models.Period.findByPk(id);
-
-  if (!period) return null;
-
-  const startDate = payload.startDate ?? period.startDate;
-  const endDate = payload.endDate ?? period.endDate;
-
-  await validatePeriodOverlap(startDate, endDate, id);
-
-  const allowed = ['startDate', 'endDate', 'notes'];
-
-  allowed.forEach(k => {
-    if (payload[k] !== undefined) period[k] = payload[k];
-  });
-
-  await period.save();
-
-  return period;
-} */
-
-
 export async function updatePeriod(id, payload) {
   // usar transacción para evitar race conditions entre validación y save
   return sequelize.transaction(async (t) => {
@@ -182,18 +165,14 @@ export async function updatePeriod(id, payload) {
     const startDate = payload.startDate ?? period.startDate;
     const endDate = payload.endDate ?? period.endDate;
 
-    // normalize
-    const s = toDateOnlyString(startDate);
-    const e = toDateOnlyString(endDate);
-
-    if (new Date(s).getTime() >= new Date(e).getTime()) {
+    if (new Date(startDate).getTime() >= new Date(endDate).getTime()) {
       throw new Error('startDate must be before endDate');
     }
 
-    validateMaxDuration(s, e, 31);
+    validateMaxDuration(startDate, endDate, 31);
 
     // exclude self to avoid false positive
-    await validatePeriodOverlap(s, e, id);
+    await validatePeriodOverlap(startDate, endDate, id);
 
     // apply allowed updates
     const allowed = ['startDate','endDate','notes'];

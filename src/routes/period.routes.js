@@ -21,8 +21,10 @@ router.post('/periods/:id/movements', async (req, res, next) => {
 
 
 // MOVEMENTS PERIODS
-
-// Crea movimiento libre; si no existe periodo para movementDate lo crea (autoCreatePeriod=true por defecto)
-router.post('/movements', movementCtrl.createMovement);
+router.post('/period-movements', movementCtrl.createMovement);
+router.get('/period-movements', movementCtrl.listMovements); // optional ?periodId=&limit=&offset=
+router.get('/period-movements/:id', movementCtrl.getMovement);
+router.patch('/period-movement/:id', movementCtrl.updateMovement);
+router.delete('/period-movements/:id', movementCtrl.deleteMovement);
 
 export default router;

@@ -2,7 +2,7 @@
 import models, { sequelize } from '../database/models/associateModels.js';
 import { findOrCreatePeriodByDate } from './period.service.js';
 
-const { PeriodMovement } = models;
+const { PeriodMovement, Period } = models;
 
 // Validaciones ligeras
 function validateMovementPayload(payload) {
@@ -14,10 +14,7 @@ function validateMovementPayload(payload) {
   if (!['cash','card'].includes(paymentMethod)) throw new Error('paymentMethod must be "cash" or "card"');
 }
 
-// Crea un movimiento. 
-// Opciones:
-// - periodId explícito -> usa ese periodId
-// - si no, usa movementDate y autoCreatePeriod flag
+// Crea un movimiento.
 export async function createMovement(payload, { autoCreatePeriod = true } = {}) {
   validateMovementPayload(payload);
 
@@ -25,11 +22,8 @@ export async function createMovement(payload, { autoCreatePeriod = true } = {}) 
   try {
     let periodId = payload.periodId;
     if (!periodId) {
-      if (!payload.movementDate) {
-        // sin periodId ni fecha -> usar fecha actual y autoCrear según regla
-        payload.movementDate = new Date().toISOString().slice(0,10);
-      }
-      const period = await findOrCreatePeriodByDate(payload.movementDate, { autoCreate: autoCreatePeriod, transaction: t });
+      const actualDate = new Date().toISOString().slice(0,10);
+      const period = await findOrCreatePeriodByDate(actualDate, { autoCreate: autoCreatePeriod, transaction: t });
       if (!period) throw new Error('No period found for given date and autoCreatePeriod is false');
       periodId = period.id;
     } else {
@@ -38,7 +32,7 @@ export async function createMovement(payload, { autoCreatePeriod = true } = {}) 
       if (!p) throw new Error('periodId not found');
     }
 
-    // preparar objeto de creación, seteando createdAt si mandaron movementDate
+    // preparar objeto de creación. 
     const createObj = {
       periodId,
       type: payload.type,
@@ -47,15 +41,74 @@ export async function createMovement(payload, { autoCreatePeriod = true } = {}) 
       paymentMethod: payload.paymentMethod
     };
 
-    if (payload.movementDate) {
-      // usar movementDate como createdAt (se espera formato YYYY-MM-DD)
-      createObj.createdAt = payload.movementDate + 'T00:00:00.000Z';
-    }
-
     const created = await PeriodMovement.create(createObj, { transaction: t });
 
     await t.commit();
     return created;
+  } catch (err) {
+    await t.rollback();
+    throw err;
+  }
+}
+
+export async function getMovementById(id) {
+  return PeriodMovement.findByPk(id, {
+    include: [{ model: Period, as: 'period' }]
+  });
+}
+
+export async function listMovements({ periodId = null, limit = 100, offset = 0 } = {}) {
+  const where = {};
+  if (periodId) where.periodId = periodId;
+  return PeriodMovement.findAll({
+    where,
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset
+  });
+}
+
+export async function updateMovement(id, payload) {
+  const t = await sequelize.transaction();
+  try {
+    const m = await PeriodMovement.findByPk(id, { transaction: t });
+    if (!m) {
+      await t.rollback();
+      return null;
+    }
+
+    // If payload wants to change periodId, validate target exists
+    if (payload.periodId !== undefined && payload.periodId !== m.periodId) {
+      const p = await Period.findByPk(payload.periodId, { transaction: t });
+      if (!p) throw new Error('Target periodId not found');
+      m.periodId = payload.periodId;
+    }
+
+    // Update allowed fields
+    const allowed = ['type','concept','amount','paymentMethod'];
+    allowed.forEach(k => { if (payload[k] !== undefined) m[k] = payload[k]; });
+
+    await m.save({ transaction: t });
+    await t.commit();
+    return m;
+  } catch (err) {
+    await t.rollback();
+    throw err;
+  }
+}
+
+export async function deleteMovement(id) {
+  // simple delete
+  const t = await sequelize.transaction();
+  try {
+    const m = await PeriodMovement.findByPk(id, { transaction: t });
+    if (!m) {
+      await t.rollback();
+      return null;
+    }
+    await m.destroy({ transaction: t });
+    await t.commit();
+    return true;
   } catch (err) {
     await t.rollback();
     throw err;
