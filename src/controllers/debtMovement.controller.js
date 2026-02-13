@@ -11,7 +11,12 @@ export async function createDebtMovement(req, res, next) {
     };
     const created = await mvService.createDebtMovement(payload);
     return res.status(201).json(created);
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err.message) {
+      return res.status(err.status).json({ error: err.message });
+    } 
+    next(err);
+  }
 }
 
 export async function listDebtMovements(req, res, next) {

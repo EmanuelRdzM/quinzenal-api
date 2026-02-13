@@ -26,8 +26,8 @@ router.post('/debts/:debtId/movements', debtMvCtrl.createDebtMovement);
 router.get('/debts/:debtId/movements', debtMvCtrl.listDebtMovements);
 
 // Movements by id
-router.get('/movements/:id', debtMvCtrl.getDebtMovement);
-router.put('/movements/:id', debtMvCtrl.updateDebtMovement);
-router.delete('/movements/:id', debtMvCtrl.deleteDebtMovement);
+router.get('/debt-movements/:id', debtMvCtrl.getDebtMovement);
+router.put('/debt-movements/:id', debtMvCtrl.updateDebtMovement);
+router.delete('/debt-movements/:id', debtMvCtrl.deleteDebtMovement);
 
 export default router;

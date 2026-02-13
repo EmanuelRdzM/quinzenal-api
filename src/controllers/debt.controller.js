@@ -4,7 +4,12 @@ export async function createDebt(req, res, next) {
   try {
     const created = await debtService.createDebt(req.body);
     return res.status(201).json(created);
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err.message) {
+      return res.status(err.status).json({ error: err.message });
+    } 
+    next(err); 
+  }
 }
 
 export async function listDebts(req, res, next) {
