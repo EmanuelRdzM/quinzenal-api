@@ -33,6 +33,7 @@ export async function getDebtMovement(req, res, next) {
   try {
     const id = req.params.id;
     const m = await mvService.getDebtMovementById(id);
+    if (!m) return res.status(404).json({ message: 'Movement not found' });
     return res.json(m);
   } catch (err) { next(err); }
 }
@@ -41,6 +42,7 @@ export async function updateDebtMovement(req, res, next) {
   try {
     const id = req.params.id;
     const updated = await mvService.updateDebtMovement(id, req.body);
+    if (!updated) return res.status(404).json({ message: 'Movement not found' });
     return res.json(updated);
   } catch (err) { next(err); }
 }
@@ -49,6 +51,7 @@ export async function deleteDebtMovement(req, res, next) {
   try {
     const id = req.params.id;
     const ok = await mvService.deleteDebtMovement(id);
+    if (!ok) return res.status(404).json({ message: 'Movement not found' });
     return res.json({ deleted: ok });
   } catch (err) { next(err); }
 }

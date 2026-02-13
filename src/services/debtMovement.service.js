@@ -57,14 +57,13 @@ export async function listDebtMovements({ debtId = null, limit = 200, offset = 0
 
 export async function getDebtMovementById(id) {
   const m = await DebtMovement.findByPk(id, { include: [{ model: Debt, as: 'debt' }] });
-  if (!m) throw new ApiError('DebtMovement not found', 404);
   return m;
 }
 
 export async function updateDebtMovement(id, payload) {
   return sequelize.transaction(async (t) => {
     const m = await DebtMovement.findByPk(id, { transaction: t });
-    if (!m) throw new ApiError('DebtMovement not found', 404);
+    if (!m) return null;
 
     if (payload.debtId && payload.debtId !== m.debtId) {
       const d = await Debt.findByPk(payload.debtId, { transaction: t });
@@ -87,7 +86,7 @@ export async function updateDebtMovement(id, payload) {
 export async function deleteDebtMovement(id) {
   return sequelize.transaction(async (t) => {
     const m = await DebtMovement.findByPk(id, { transaction: t });
-    if (!m) throw new ApiError('DebtMovement not found', 404);
+    if (!m) return null;
     await m.destroy({ transaction: t });
     return true;
   });

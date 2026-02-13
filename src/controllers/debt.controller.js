@@ -23,6 +23,7 @@ export async function getDebt(req, res, next) {
   try {
     const id = req.params.id;
     const d = await debtService.getDebtById(id);
+    if (!d) return res.status(404).json({ message: 'Debt not found' });
     return res.json(d);
   } catch (err) { next(err); }
 }
@@ -31,6 +32,7 @@ export async function updateDebt(req, res, next) {
   try {
     const id = req.params.id;
     const updated = await debtService.updateDebt(id, req.body);
+    if (!updated) return res.status(404).json({ message: 'Debt not found' });
     return res.json(updated);
   } catch (err) { next(err); }
 }
@@ -39,6 +41,7 @@ export async function deleteDebt(req, res, next) {
   try {
     const id = req.params.id;
     const ok = await debtService.deleteDebt(id);
+    if (!ok) return res.status(404).json({ message: 'Debt not found' });
     return res.json({ deleted: ok });
   } catch (err) { next(err); }
 }
@@ -48,5 +51,10 @@ export async function getDebtSummary(req, res, next) {
     const id = req.params.id;
     const summary = await debtService.getDebtSummary(id);
     return res.json(summary);
-  } catch (err) { next(err); }
+  } catch (err) { 
+    if (err.message === 'Debt not found') {
+      return res.status(404).json({ error: 'Debt not found' });
+    }
+    next(err); 
+  }
 }

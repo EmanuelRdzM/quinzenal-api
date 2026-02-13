@@ -29,14 +29,13 @@ export async function listDebts({ personId = null, limit = 50, offset = 0 } = {}
 
 export async function getDebtById(id) {
   const d = await Debt.findByPk(id, { include: [{ model: DebtMovement, as: 'debt_movements', order: [['date','DESC']] }, { model: Person, as: 'person' }] });
-  if (!d) throw new ApiError('Debt not found', 404);
   return d;
 }
 
 export async function updateDebt(id, payload) {
   return sequelize.transaction(async (t) => {
     const d = await Debt.findByPk(id, { transaction: t });
-    if (!d) throw new ApiError('Debt not found', 404);
+    if (!d) return null;
 
     if (payload.personId && payload.personId !== d.personId) {
       const p = await Person.findByPk(payload.personId, { transaction: t });
@@ -57,7 +56,7 @@ export async function updateDebt(id, payload) {
 export async function deleteDebt(id) {
   return sequelize.transaction(async (t) => {
     const d = await Debt.findByPk(id, { transaction: t });
-    if (!d) throw new ApiError('Debt not found', 404);
+    if (!d) return null;
 
     // opción: checar si tiene movimientos y bloquear eliminación
     await d.destroy({ transaction: t });

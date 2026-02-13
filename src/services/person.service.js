@@ -20,14 +20,13 @@ export async function getPersonById(id) {
   const p = await Person.findByPk(id, {
     include: [{ model: Debt, as: 'debts', include: [{ all: true }] }]
   });
-  if (!p) throw new ApiError('Person not found', 404);
   return p;
 }
 
 export async function updatePerson(id, payload) {
   return sequelize.transaction(async (t) => {
     const p = await Person.findByPk(id, { transaction: t });
-    if (!p) throw new ApiError('Person not found', 404);
+    if (!p) return null;
 
     const allowed = ['name', 'notes'];
     allowed.forEach(k => { if (payload[k] !== undefined) p[k] = payload[k]; });
@@ -40,7 +39,7 @@ export async function updatePerson(id, payload) {
 export async function deletePerson(id) {
   return sequelize.transaction(async (t) => {
     const p = await Person.findByPk(id, { transaction: t });
-    if (!p) throw new ApiError('Person not found', 404);
+    if (!p) return null;
 
     // opción: bloquear eliminación si tiene deudas; ahora dejamos eliminar (cascade según fk)
     await p.destroy({ transaction: t });
