@@ -18,14 +18,30 @@ export async function createDebt({ personId, type = 'loan', description = null }
 export async function listDebts({ personId = null, limit = 50, offset = 0 } = {}) {
   const where = {};
   if (personId) where.personId = personId;
+
   return Debt.findAll({
     where,
     include: [{ model: Person, as: 'person' }],
+    attributes: {
+      include: [
+        // suma 'lend'
+        [sequelize.literal(`COALESCE((SELECT SUM(amount) FROM debt_movements dm WHERE dm."debtId" = "Debt"."id" AND dm.type = 'lend'), 0)`), 'totalLend'],
+        // suma 'payment'
+        [sequelize.literal(`COALESCE((SELECT SUM(amount) FROM debt_movements dm WHERE dm."debtId" = "Debt"."id" AND dm.type = 'payment'), 0)`), 'totalPayment'],
+        // balance = lend - payment
+        [sequelize.literal(`COALESCE((SELECT 
+            COALESCE(SUM(CASE WHEN dm.type='lend' THEN dm.amount ELSE 0 END),0)
+            - COALESCE(SUM(CASE WHEN dm.type='payment' THEN dm.amount ELSE 0 END),0)
+          FROM debt_movements dm WHERE dm."debtId" = "Debt"."id"), 0)`), 'balance']
+      ]
+    },
     order: [['createdAt', 'DESC']],
     limit,
-    offset
+    offset,
+    raw: false
   });
 }
+
 
 export async function getDebtById(id) {
   const d = await Debt.findByPk(id, { include: [{ model: DebtMovement, as: 'debt_movements', order: [['date','DESC']] }, { model: Person, as: 'person' }] });
