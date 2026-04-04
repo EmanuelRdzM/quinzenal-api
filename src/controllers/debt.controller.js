@@ -1,14 +1,13 @@
 import * as debtService from '../services/debt.service.js';
+import ApiError from '../shared/errors/ApiError.js';
 
 export async function createDebt(req, res, next) {
   try {
     const created = await debtService.createDebt(req.body);
     return res.status(201).json(created);
   } catch (err) {
-    if (err.message) {
-      return res.status(err.status).json({ error: err.message });
-    } 
-    next(err); 
+    if (err instanceof ApiError) return res.status(err.status).json({ error: err.message });
+    next(err);
   }
 }
 

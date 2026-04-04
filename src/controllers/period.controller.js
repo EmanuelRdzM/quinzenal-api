@@ -1,17 +1,25 @@
 // src/controllers/period.controller.js
 import * as periodService from '../services/period.service.js';
 
-export async function list(req, res) {
-  const { limit = 50, offset = 0 } = req.query;
-  const list = await periodService.listPeriods({ limit: Number(limit), offset: Number(offset) });
-  res.json(list);
+export async function list(req, res, next) {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+    const list = await periodService.listPeriods({ limit: Number(limit), offset: Number(offset) });
+    res.json(list);
+  } catch (err) {
+    next(err);
+  }
 }
 
-export async function get(req, res) {
-  const { id } = req.params;
-  const p = await periodService.getPeriodById(id);
-  if (!p) return res.status(404).json({ error: 'Period not found' });
-  res.json(p);
+export async function get(req, res, next) {
+  try {
+    const { id } = req.params;
+    const p = await periodService.getPeriodById(id);
+    if (!p) return res.status(404).json({ error: 'Period not found' });
+    res.json(p);
+  } catch (err) {
+    next(err);
+  }
 }
 
 export async function create(req, res) {

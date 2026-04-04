@@ -3,7 +3,7 @@ import cors from 'cors';
 import routes from './routes/index.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors({
   origin: [
@@ -18,6 +18,13 @@ app.use(routes);
 
 app.get('/', (req, res) => {
   res.send('Servidor backend funcionando');
+});
+
+// Global error handler — catches all next(err) calls across controllers
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  const message = err.message || 'Internal server error';
+  res.status(status).json({ error: message });
 });
 
 app.listen(PORT, () => {
