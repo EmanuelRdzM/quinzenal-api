@@ -33,5 +33,10 @@ export default class Person extends Model {
       foreignKey: 'personId',
       as: 'debts'
     });
+
+    this.hasMany(models.PersonMovement, {
+      foreignKey: 'personId',
+      as: 'person_movements'
+    });
   }
 }

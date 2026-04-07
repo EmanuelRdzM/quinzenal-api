@@ -9,11 +9,12 @@ export async function createPerson(req, res, next) {
 
 export async function listPeople(req, res, next) {
   try {
-    const { limit, offset, q } = req.query;
+    const { limit, offset, q, category } = req.query;
     const rows = await personService.listPeople({
       limit: limit ? parseInt(limit) : 50,
       offset: offset ? parseInt(offset) : 0,
-      q
+      q,
+      category: category || null
     });
     return res.json(rows);
   } catch (err) { next(err); }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as personCtrl from '../controllers/person.controller.js';
+import * as personMvCtrl from '../controllers/personMovement.controller.js';
 import * as debtCtrl from '../controllers/debt.controller.js';
 import * as debtMvCtrl from '../controllers/debtMovement.controller.js';
 
@@ -12,6 +13,12 @@ router.get('/people/:id', personCtrl.getPerson);
 router.put('/people/:id', personCtrl.updatePerson);
 router.delete('/people/:id', personCtrl.deletePerson);
 router.get('/people/:id/summary', personCtrl.getPersonSummary);
+router.post('/people/:id/movements', personMvCtrl.createForPerson);
+router.get('/people/:id/movements', personMvCtrl.listForPerson);
+
+router.get('/person-movements/:id', personMvCtrl.getPersonMovement);
+router.put('/person-movements/:id', personMvCtrl.updatePersonMovement);
+router.delete('/person-movements/:id', personMvCtrl.deletePersonMovement);
 
 // Debts
 router.post('/debts', debtCtrl.createDebt);

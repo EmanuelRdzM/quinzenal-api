@@ -28,6 +28,18 @@ export async function listCards({ limit = 50, offset = 0, q = null } = {}) {
   }
   return Card.findAll({
     where,
+    attributes: {
+      include: [
+        [
+          sequelize.literal(`(
+            \`Card\`.\`initialBalance\`
+            + COALESCE((SELECT SUM(\`amount\`) FROM \`card_movements\` WHERE \`cardId\` = \`Card\`.\`id\` AND \`type\` = 'income'), 0)
+            - COALESCE((SELECT SUM(\`amount\`) FROM \`card_movements\` WHERE \`cardId\` = \`Card\`.\`id\` AND \`type\` = 'expense'), 0)
+          )`),
+          'currentBalance'
+        ]
+      ]
+    },
     order: [['name', 'ASC']],
     limit,
     offset

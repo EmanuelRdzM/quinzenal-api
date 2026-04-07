@@ -3,22 +3,44 @@ import models, { sequelize } from '../database/models/associateModels.js';
 import { Op } from 'sequelize';
 import ApiError from '../shared/errors/ApiError.js';
 
-const { Person, Debt } = models;
+const { Person, Debt, PersonMovement } = models;
 
 export async function createPerson({ name, notes = null }) {
   if (!name || typeof name !== 'string') throw new ApiError('name is required', 400);
   return Person.create({ name, notes });
 }
 
-export async function listPeople({ limit = 50, offset = 0, q = null } = {}) {
+export async function listPeople({ limit = 50, offset = 0, q = null, category = null } = {}) {
   const where = {};
   if (q) where.name = { [Op.like]: `%${q}%` };
+
+  if (category) {
+    where[Op.and] = [
+      sequelize.literal(`(
+        EXISTS (
+          SELECT 1
+          FROM person_movements pm
+          WHERE pm.personId = Person.id
+            AND pm.category = ${sequelize.escape(category)}
+        )
+        OR NOT EXISTS (
+          SELECT 1
+          FROM person_movements pm2
+          WHERE pm2.personId = Person.id
+        )
+      )`)
+    ];
+  }
+
   return Person.findAll({ where, order: [['name', 'ASC']], limit, offset });
 }
 
 export async function getPersonById(id) {
   const p = await Person.findByPk(id, {
-    include: [{ model: Debt, as: 'debts', include: [{ all: true }] }]
+    include: [
+      { model: Debt, as: 'debts', include: [{ all: true }] },
+      { model: PersonMovement, as: 'person_movements' }
+    ]
   });
   return p;
 }
@@ -55,47 +77,43 @@ export async function getPersonSummary(personId) {
   const person = await Person.findByPk(personId);
   if (!person) throw new ApiError('Person not found', 404);
 
-  // Traer deudas de la persona
-  const debts = await Debt.findAll({ where: { personId } });
+  const rows = await PersonMovement.findAll({
+    where: { personId },
+    attributes: [
+      'category',
+      'type',
+      [sequelize.fn('SUM', sequelize.col('amount')), 'total']
+    ],
+    group: ['category', 'type'],
+    raw: true
+  });
 
-  // Para cada deuda sumar movimientos (se podría optimizar con agregación SQL)
-  const summaries = await Promise.all(debts.map(async (d) => {
-    // sumar movimientos por tipo
-    const rows = await models.DebtMovement.findAll({
-      where: { debtId: d.id },
-      attributes: [
-        'type',
-        [sequelize.fn('SUM', sequelize.col('amount')), 'total']
-      ],
-      group: ['type'],
-      raw: true
-    });
+  const buckets = {
+    loan: { totalLend: 0, totalPayment: 0, balance: 0 },
+    rent: { totalLend: 0, totalPayment: 0, balance: 0 }
+  };
 
-    let totalLend = 0, totalPayment = 0;
-    rows.forEach(r => {
-      const v = parseFloat(r.total || 0);
-      if (r.type === 'lend') totalLend += v;
-      if (r.type === 'payment') totalPayment += v;
-    });
+  rows.forEach((row) => {
+    const category = row.category;
+    if (!buckets[category]) return;
 
-    return {
-      debtId: d.id,
-      type: d.type,
-      description: d.description,
-      totalLend,
-      totalPayment,
-      balance: totalLend - totalPayment
-    };
-  }));
+    const value = parseFloat(row.total || 0);
+    if (row.type === 'lend') buckets[category].totalLend += value;
+    if (row.type === 'payment') buckets[category].totalPayment += value;
+  });
 
-  const totalLend = summaries.reduce((s, x) => s + x.totalLend, 0);
-  const totalPayment = summaries.reduce((s, x) => s + x.totalPayment, 0);
+  buckets.loan.balance = buckets.loan.totalLend - buckets.loan.totalPayment;
+  buckets.rent.balance = buckets.rent.totalLend - buckets.rent.totalPayment;
+
+  const totalLend = buckets.loan.totalLend + buckets.rent.totalLend;
+  const totalPayment = buckets.loan.totalPayment + buckets.rent.totalPayment;
   const totalBalance = totalLend - totalPayment;
 
   return {
     personId,
     name: person.name,
     totals: { totalLend, totalPayment, totalBalance },
-    debts: summaries
+    byCategory: buckets,
+    debts: []
   };
 }
