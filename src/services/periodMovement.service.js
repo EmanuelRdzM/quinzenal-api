@@ -224,20 +224,30 @@ export async function getPeriodSummary(periodId) {
   const totalExpense = expenseCash + expenseCard;
 
   const expenseByCategoryMap = new Map();
+  const incomeByCategoryMap = new Map();
+  
   movements.forEach(item => {
-    if (item.type !== 'expense') return;
     const key = String(item.categoryId);
-    const agg = expenseByCategoryMap.get(key) || {
+    const agg = {
       categoryId: item.categoryId,
       categoryName: item.category?.name || 'Sin categoria',
       categorySlug: item.category?.slug || 'sin-categoria',
       total: 0
     };
-    agg.total += Number(item.amount || 0);
-    expenseByCategoryMap.set(key, agg);
+    
+    if (item.type === 'expense') {
+      const existing = expenseByCategoryMap.get(key) || agg;
+      existing.total += Number(item.amount || 0);
+      expenseByCategoryMap.set(key, existing);
+    } else if (item.type === 'income') {
+      const existing = incomeByCategoryMap.get(key) || agg;
+      existing.total += Number(item.amount || 0);
+      incomeByCategoryMap.set(key, existing);
+    }
   });
 
   const expenseByCategory = Array.from(expenseByCategoryMap.values()).sort((a, b) => b.total - a.total);
+  const incomeByCategory = Array.from(incomeByCategoryMap.values()).sort((a, b) => b.total - a.total);
 
   const topExpenseCategory = expenseByCategory[0] || null;
 
@@ -249,6 +259,7 @@ export async function getPeriodSummary(periodId) {
     balanceTotal: totalIncome - totalExpense,
     transactionsCount: counts,
     expenseByCategory,
+    incomeByCategory,
     topExpenseCategory
   };
 }
@@ -315,6 +326,7 @@ export async function getMonthlyAnalytics({ months = 6 } = {}) {
 
   const bucketMap = new Map(buckets.map(item => [item.key, item]));
   const categoryExpenseMap = new Map();
+  const categoryIncomeMap = new Map();
 
   movements.forEach(item => {
     const movementDate = toDateOnly(item.movementDate);
@@ -324,21 +336,28 @@ export async function getMonthlyAnalytics({ months = 6 } = {}) {
       bucket[item.type] += Number(item.amount || 0);
     }
 
+    const categoryKey = String(item.categoryId);
+    const agg = {
+      categoryId: item.categoryId,
+      categoryName: item.category?.name || 'Sin categoria',
+      categorySlug: item.category?.slug || 'sin-categoria',
+      total: 0
+    };
+
     if (item.type === 'expense') {
-      const categoryKey = String(item.categoryId);
-      const agg = categoryExpenseMap.get(categoryKey) || {
-        categoryId: item.categoryId,
-        categoryName: item.category?.name || 'Sin categoria',
-        categorySlug: item.category?.slug || 'sin-categoria',
-        total: 0
-      };
-      agg.total += Number(item.amount || 0);
-      categoryExpenseMap.set(categoryKey, agg);
+      const existing = categoryExpenseMap.get(categoryKey) || agg;
+      existing.total += Number(item.amount || 0);
+      categoryExpenseMap.set(categoryKey, existing);
+    } else if (item.type === 'income') {
+      const existing = categoryIncomeMap.get(categoryKey) || agg;
+      existing.total += Number(item.amount || 0);
+      categoryIncomeMap.set(categoryKey, existing);
     }
   });
 
   return {
     months: buckets,
-    expenseByCategory: Array.from(categoryExpenseMap.values()).sort((a, b) => b.total - a.total)
+    expenseByCategory: Array.from(categoryExpenseMap.values()).sort((a, b) => b.total - a.total),
+    incomeByCategory: Array.from(categoryIncomeMap.values()).sort((a, b) => b.total - a.total)
   };
 }
