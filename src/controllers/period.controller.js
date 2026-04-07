@@ -1,5 +1,6 @@
 // src/controllers/period.controller.js
 import * as periodService from '../services/period.service.js';
+import * as movementService from '../services/periodMovement.service.js';
 
 export async function list(req, res, next) {
   try {
@@ -59,8 +60,18 @@ export async function update(req, res) {
 export async function summary(req, res) {
   const { id } = req.params;
   try {
-    const summary = await (await import('../services/periodMovement.service.js')).getPeriodSummary(Number(id));
+    const summary = await movementService.getPeriodSummary(Number(id));
     return res.json(summary);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function analytics(req, res) {
+  const { id } = req.params;
+  try {
+    const analytics = await movementService.getPeriodAnalytics(Number(id));
+    return res.json(analytics);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

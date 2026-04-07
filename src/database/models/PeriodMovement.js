@@ -32,6 +32,18 @@ export default class PeriodMovement extends Model {
                 paymentMethod: {
                     type: DataTypes.ENUM('cash', 'card'),
                     allowNull: false
+                },
+                categoryId: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false
+                },
+                movementDate: {
+                    type: DataTypes.DATEONLY,
+                    allowNull: false
+                },
+                description: {
+                    type: DataTypes.TEXT,
+                    allowNull: true
                 }
             },
             {
@@ -48,6 +60,11 @@ export default class PeriodMovement extends Model {
         this.belongsTo(models.Period, {
             foreignKey: 'periodId',
             as: 'period'
+        });
+
+        this.belongsTo(models.TransactionCategory, {
+            foreignKey: 'categoryId',
+            as: 'category'
         });
     }
 }

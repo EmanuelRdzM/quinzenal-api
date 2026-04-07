@@ -11,6 +11,7 @@ import Debt from './Debt.js';
 import DebtMovement from './DebtMovement.js';
 import Credit from './Credit.js';
 import CreditPayment from './CreditPayment.js';
+import TransactionCategory from './TransactionCategory.js';
 
 const models = {};
 
@@ -25,6 +26,7 @@ models.Debt = Debt.initModel(sequelize);
 models.DebtMovement = DebtMovement.initModel(sequelize);
 models.Credit = Credit.initModel(sequelize);
 models.CreditPayment = CreditPayment.initModel(sequelize);
+models.TransactionCategory = TransactionCategory.initModel(sequelize);
 
 // Crear asociaciones
 Object.values(models).forEach(model => {

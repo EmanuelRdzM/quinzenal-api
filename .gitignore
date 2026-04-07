@@ -11,6 +11,8 @@ yarn-error.log*
 # Build
 dist/
 build/
+.vscode/*
+!.vscode/extensions.json
 
 # Logs
 logs/
