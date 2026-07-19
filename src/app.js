@@ -7,7 +7,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({
   origin: [
-    'http://localhost:5173', // Vite default
+    'http://localhost:5173', // Vite dev
+    'file://', // Electron production
+    'http://localhost:3000' // In case
   ],
   credentials: true
 }));
