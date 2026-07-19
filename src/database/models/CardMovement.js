@@ -17,6 +17,11 @@ export default class CardMovement extends Model {
           type: DataTypes.ENUM('income', 'expense'),
           allowNull: false
         },
+        operationType: {
+          type: DataTypes.ENUM('purchase', 'payment', 'refund', 'interest', 'late_fee', 'cash_advance'),
+          allowNull: true,
+          defaultValue: null
+        },
         concept: {
           type: DataTypes.STRING(255),
           allowNull: false
@@ -28,6 +33,26 @@ export default class CardMovement extends Model {
         amount: {
           type: DataTypes.DECIMAL(12, 2),
           allowNull: false
+        },
+        msiGroupId: {
+          type: DataTypes.STRING(36),
+          allowNull: true,
+          defaultValue: null
+        },
+        installmentNumber: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          defaultValue: null
+        },
+        installments: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          defaultValue: null
+        },
+        originalPurchaseDate: {
+          type: DataTypes.DATEONLY,
+          allowNull: true,
+          defaultValue: null
         },
         date: {
           type: DataTypes.DATEONLY,

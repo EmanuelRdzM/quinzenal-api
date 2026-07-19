@@ -14,8 +14,8 @@ export async function listCards(req, res, next) {
   try {
     const { limit, offset, q } = req.query;
     const rows = await cardService.listCards({
-      limit: limit ? parseInt(limit) : 50,
-      offset: offset ? parseInt(offset) : 0,
+      limit: limit ? parseInt(limit, 10) : 50,
+      offset: offset ? parseInt(offset, 10) : 0,
       q
     });
     return res.json(rows);

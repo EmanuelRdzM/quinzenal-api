@@ -4,12 +4,14 @@ import * as movementService from '../services/cardMovement.service.js';
 export async function createMovement(req, res, next) {
   try {
     const payload = {
-      cardId: parseInt(req.params.cardId || req.body.cardId),
+      cardId: parseInt(req.params.cardId || req.body.cardId, 10),
       type: req.body.type,
+      operationType: req.body.operationType,
       concept: req.body.concept,
       description: req.body.description,
       amount: req.body.amount,
-      date: req.body.date
+      date: req.body.date,
+      installments: req.body.installments
     };
     const created = await movementService.createCardMovement(payload);
     return res.status(201).json(created);
@@ -20,12 +22,12 @@ export async function createMovement(req, res, next) {
 
 export async function listMovements(req, res, next) {
   try {
-    const cardId = req.params.cardId ? parseInt(req.params.cardId) : null;
+    const cardId = req.params.cardId ? parseInt(req.params.cardId, 10) : null;
     const { limit, offset, fromDate, toDate } = req.query;
     const rows = await movementService.listMovements({
       cardId,
-      limit: limit ? parseInt(limit) : 100,
-      offset: offset ? parseInt(offset) : 0,
+      limit: limit ? parseInt(limit, 10) : 100,
+      offset: offset ? parseInt(offset, 10) : 0,
       fromDate,
       toDate
     });
