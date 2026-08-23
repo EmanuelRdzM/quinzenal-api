@@ -28,3 +28,15 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
+
+const shutdown = () => {
+    console.log('Cerrando servidor...');
+    server.close(() => {
+        console.log('Servidor cerrado');
+        process.exit(0);
+    });
+};
+
+process.on('SIGINT', shutdown);   // Ctrl + C
+process.on('SIGTERM', shutdown);
